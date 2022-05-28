@@ -76,6 +76,10 @@ class App(Storage):
 	def apply(self):
 		self.append({"Дата":self.date_i.get(), "Предмет":self.object_i.get(), "Тип достижения":self.type_i.get(), "Достижение":int(self.achivement_i.get())})
 		self.reset_table()
+		self.date_i.delete(0, "end")
+		self.object_i.delete(0, "end")
+		self.type_i.delete(0, "end")
+		self.achivement_i.delete(0, "end")
 	def run(self):
 		self.main_win.mainloop()
 		
