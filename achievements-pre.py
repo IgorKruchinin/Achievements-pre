@@ -2,7 +2,9 @@ import pandas as pd
 import tkinter as tk
 from tkinter import ttk
 import os.path
+from tkcalendar import DateEntry
 
+import matplotlib.pyplot as plt
 
 class Storage:
 	def __init__(self):
@@ -11,7 +13,7 @@ class Storage:
 		else:
 			self.df = pd.DataFrame({"Дата":[], "Предмет":[], "Тип достижения":[], "Достижение":[]})
 	def append(self, elem={"Дата":"", "Предмет":"", "Тип достижения":"", "Достижение":0}):
-		self.df = self.df.append(elem, ignore_index=True)
+		self.df = pd.concat([self.df, pd.DataFrame([elem])], ignore_index=True)
 		self.df.to_csv("data.csv", index=False)
 
 class App(Storage):
@@ -40,7 +42,7 @@ class App(Storage):
 		self.table.pack(fill="both", expand=1)
 		fr0 = tk.Frame(self.main_win)
 		date_lbl = tk.Label(fr0, text="Дата: ")
-		self.date_i = tk.Entry(fr0, width=10)
+		self.date_i = DateEntry(fr0, locale="ru_RU", date_pattern="dd.MM.yyyy", width=10)
 		object_lbl = tk.Label(fr0, text="Предмет:")
 		self.object_i = tk.Entry(fr0, width=10)
 		fr1 = tk.Frame(self.main_win)
@@ -51,6 +53,7 @@ class App(Storage):
 		self.achivement_i = tk.Entry(fr2, width=20)
 		fr3 = tk.Frame(self.main_win)
 		append_btn = tk.Button(fr3, text="Добавить достижение", command=self.apply)
+		show_plot_btn = tk.Button(fr3, text="Смотреть график", command=self.show_plot)
 		date_lbl.pack(side="left")
 		self.date_i.pack(side="left")
 		object_lbl.pack(side="left")
@@ -60,6 +63,7 @@ class App(Storage):
 		achivement_lbl.pack(side="left")
 		self.achivement_i.pack(side="left")
 		append_btn.pack(side="left")
+		show_plot_btn.pack(side="left")
 		fr0.pack(side="top")
 		fr1.pack(side="top")
 		fr2.pack(side="top")
@@ -74,12 +78,23 @@ class App(Storage):
 			for index, row in self.df.iterrows():
 				self.table.insert(parent='', index='end', iid=index, text='', values=row.to_list())
 	def apply(self):
-		self.append({"Дата":self.date_i.get(), "Предмет":self.object_i.get(), "Тип достижения":self.type_i.get(), "Достижение":int(self.achivement_i.get())})
+		self.append({"Дата":pd.to_datetime(pd.Timestamp(self.date_i.get_date()), format="%d.%m.%Y"), "Предмет":self.object_i.get(), "Тип достижения":self.type_i.get(), "Достижение":int(self.achivement_i.get())})
 		self.reset_table()
 		self.date_i.delete(0, "end")
 		self.object_i.delete(0, "end")
 		self.type_i.delete(0, "end")
 		self.achivement_i.delete(0, "end")
+	def show_plot(self):
+                df_tmp = self.df[self.df["Предмет"] == self.object_i.get()]
+                df_tmp = df_tmp[df_tmp["Тип достижения"] == self.type_i.get()]
+                plt.plot(df_tmp["Дата"], df_tmp["Достижение"])
+                plt.xlabel("Дата")
+                plt.ylabel("Достижение")
+                plt.show()
+                self.date_i.delete(0, "end")
+                self.object_i.delete(0, "end")
+                self.type_i.delete(0, "end")
+                self.achivement_i.delete(0, "end")
 	def run(self):
 		self.main_win.mainloop()
 		
